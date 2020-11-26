@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"net"
 	"net/http"
 	"time"
 
@@ -12,6 +13,14 @@ import (
 )
 
 var pool *redis.Pool
+
+func middlewareLogWrapper(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		source, _, _ := net.SplitHostPort(r.RemoteAddr)
+		log.Println("request URI", r.RequestURI, "with method", r.Method, "from ip address", source)
+		next.ServeHTTP(w, r)
+	})
+}
 
 func getTest(w http.ResponseWriter, req *http.Request) {
 	conn := pool.Get()
@@ -35,8 +44,8 @@ func main() {
 	}
 
 	router := mux.NewRouter()
-	//router.Use(middlewareLogWrapper)
-	//subrouter := router.PathPrefix("/api/v1").Subrouter()
+	router.Use(middlewareLogWrapper)
+	subrouter := router.PathPrefix("/api/v1").Subrouter()
 
 	// POST => Create
 	//subrouter.HandleFunc("/pastes", pasteCreate).Methods("POST")
@@ -51,8 +60,8 @@ func main() {
 	//router.HandleFunc("/pastes/{stub}/reports", reportRead).Methods("GET")
 	//router.HandleFunc("/pastes/{stub}", tmplRead).Methods("GET")
 	//router.HandleFunc("/pastes", pasteBrowse).Methods("GET")
-	router.HandleFunc("/get", getTest).Methods("GET")
-	router.PathPrefix("/").Handler(http.FileServer(http.Dir("dist")))
+	subrouter.HandleFunc("/get", getTest).Methods("GET")
+	router.PathPrefix("/").Handler(http.FileServer(http.Dir("htdocs")))
 
 	webserver := &http.Server{
 		Addr:    ":80",
