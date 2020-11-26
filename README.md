@@ -5,3 +5,5 @@ Ben Ha, Ron Dyck
 
 Code Names game implemented with a Go backend, and Typescript frontend.
 
+Redis + RedisJSON + gomodule/redigo + Gorilla/WebSockets
+
