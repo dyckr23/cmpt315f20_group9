@@ -9,7 +9,8 @@ import (
 	"time"
 
 	"github.com/gomodule/redigo/redis"
-	//"github.com/nitishm/go-rejson"
+
+	rejson "github.com/nitishm/go-rejson"
 
 	"github.com/gorilla/mux"
 )
@@ -53,9 +54,41 @@ func getRoom(w http.ResponseWriter, r *http.Request) {
 		writeJSONResponse(w, http.StatusText(400), 400)
 	}
 
-	// rh := rejson.NewReJSONHandler()
+	//rh := rejson.NewReJSONHandler()
 	// rh.JSON
 
+}
+
+func makeRoom(w http.ResponseWriter, r *http.Request) {
+	logRequest(w, r)
+
+	conn := pool.Get()
+	defer conn.Close()
+
+	var payload Room
+	decoder := json.NewDecoder(r.Body)
+	err := decoder.Decode(&payload)
+	if err != nil {
+		fmt.Printf("Error! %s\n", err.Error())
+	}
+
+	fmt.Println(payload)
+
+	// Check for pre-existing id????
+	//roomCode := mux.Vars(r)["roomCode"]
+
+	rh := rejson.NewReJSONHandler()
+	rh.SetRedigoClient(conn)
+
+	res, err := rh.JSONSet(payload.RoomCode, ".", payload)
+	if err != nil {
+		fmt.Printf("Error jsonset: %s\n", err.Error())
+	}
+
+	fmt.Println(res)
+
+	//var test Room
+	//decoder = json.NewDecoder(rh.JSONGet(payload.RoomCode, "."))
 }
 
 func main() {
@@ -69,14 +102,19 @@ func main() {
 
 	router := mux.NewRouter()
 	router.Use(middlewareLogWrapper)
+
 	subrouter := router.PathPrefix("/api/v1").Subrouter()
 
 	subrouter.HandleFunc("/get", getTest).Methods("GET")
-	subrouter.HandleFunc("/rooms/{id}", getRoom).Methods("GET")
+
+	subrouter.HandleFunc("/rooms/{roomCode}", getRoom).Methods("GET")
+
+	subrouter.HandleFunc("/rooms", makeRoom).Methods("POST")
+
 	router.PathPrefix("/").Handler(http.FileServer(http.Dir("htdocs")))
 
 	webserver := &http.Server{
-		Addr:    ":80",
+		Addr:    ":8080",
 		Handler: router,
 	}
 
