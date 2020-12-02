@@ -31,3 +31,13 @@ type Log struct {
 	Text      string    `json:"text,omitempty"`
 	Timestamp time.Time `json:"timestamp,omitempty"`
 }
+
+// REF
+// https://github.com/gomodule/redigo/blob/master/redis/pubsub.go
+
+// Subscription represents a subscribe or unsubscribe notification
+type Subscription struct {
+	Type    string
+	Channel string
+	Subs    int
+}
