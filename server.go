@@ -82,7 +82,11 @@ func getRoom(w http.ResponseWriter, r *http.Request) {
 
 		fmt.Printf("Room received: %#v\n", room)
 		json.NewEncoder(w).Encode(room)
+		return
 	}
+	// If room does not exist
+	// Fetch 20 random words from wordlist
+
 }
 
 func makeRoom(w http.ResponseWriter, r *http.Request) {
