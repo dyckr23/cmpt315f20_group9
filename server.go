@@ -38,8 +38,8 @@ func getTest(w http.ResponseWriter, req *http.Request) {
 }
 
 // getRoom function handles get requests with a room code
-// If room does not exist --> create new room --> response with Room as json
-// If room exists --> check room's status --> response with Room as json, or 403
+// if room exists, return the room's current game state
+// if room does not exist, create a new room and return a new game state
 func getRoom(w http.ResponseWriter, r *http.Request) {
 	// Log request
 	logRequest(w, r)
@@ -48,15 +48,41 @@ func getRoom(w http.ResponseWriter, r *http.Request) {
 	conn := pool.Get()
 	defer conn.Close()
 
-	// Get id from path variables
-	id := mux.Vars(r)["id"]
-	if id == "" {
+	// Get room code from path variables
+	roomCode := mux.Vars(r)["roomCode"]
+	if roomCode == "" {
 		writeJSONResponse(w, http.StatusText(400), 400)
 	}
 
-	//rh := rejson.NewReJSONHandler()
-	// rh.JSON
+	// Check if room code exists
+	exists, err := redis.Bool(conn.Do("exists", roomCode))
+	if err != nil {
+		writeJSONResponse(w, err.Error(), 500)
+		return
+	}
+	// If room exists, respond with current game state
+	if exists {
+		fmt.Printf("Room %s exists!\n", roomCode)
 
+		rh := rejson.NewReJSONHandler()
+		rh.SetRedigoClient(conn)
+		valueJSON, err := redis.Bytes(rh.JSONGet(roomCode, "."))
+
+		if err != nil {
+			writeJSONResponse(w, err.Error(), 500)
+			return
+		}
+
+		room := Room{}
+		err = json.Unmarshal(valueJSON, &room)
+
+		if err != nil {
+			writeJSONResponse(w, err.Error(), 500)
+		}
+
+		fmt.Printf("Room received: %#v\n", room)
+		json.NewEncoder(w).Encode(room)
+	}
 }
 
 func makeRoom(w http.ResponseWriter, r *http.Request) {
