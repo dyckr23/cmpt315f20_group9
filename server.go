@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"math/rand"
 	"net"
 	"net/http"
 	"time"
@@ -16,6 +17,9 @@ import (
 )
 
 var pool *redis.Pool
+var teams []string = []string{"red", "blue"}
+var identities []string
+var size int = 25
 
 func middlewareLogWrapper(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -47,6 +51,8 @@ func getRoom(w http.ResponseWriter, r *http.Request) {
 	// Establish a redis connection
 	conn := pool.Get()
 	defer conn.Close()
+	rh := rejson.NewReJSONHandler()
+	rh.SetRedigoClient(conn)
 
 	// Get room code from path variables
 	roomCode := mux.Vars(r)["roomCode"]
@@ -62,10 +68,8 @@ func getRoom(w http.ResponseWriter, r *http.Request) {
 	}
 	// If room exists, respond with current game state
 	if exists {
-		fmt.Printf("Room %s exists!\n", roomCode)
+		fmt.Printf("Room exists: %s\n", roomCode)
 
-		rh := rejson.NewReJSONHandler()
-		rh.SetRedigoClient(conn)
 		valueJSON, err := redis.Bytes(rh.JSONGet(roomCode, "."))
 
 		if err != nil {
@@ -80,12 +84,48 @@ func getRoom(w http.ResponseWriter, r *http.Request) {
 			writeJSONResponse(w, err.Error(), 500)
 		}
 
-		fmt.Printf("Room received: %#v\n", room)
 		json.NewEncoder(w).Encode(room)
 		return
 	}
+
 	// If room does not exist
-	// Fetch 20 random words from wordlist
+	fmt.Printf("Creating new room: %s\n", roomCode)
+
+	// Fetch 25 random words from wordlist
+	values, err := redis.Strings(conn.Do("SRANDMEMBER", "wordlist", size))
+
+	if err != nil {
+		writeJSONResponse(w, err.Error(), 500)
+		return
+	}
+
+	rand.Seed(time.Now().Unix())
+	// Randomly choose the starting team
+	firstTeam := teams[rand.Intn(len(teams))]
+	// Randomly choose the identities
+	identityIndices := rand.Perm(size)
+	// Create a list of Word objects
+	var words []Word
+	for i, word := range values {
+		if identityIndices[i] != size-1 {
+			words = append(words, Word{word, identities[identityIndices[i]], "false"})
+		} else {
+			words = append(words, Word{word, firstTeam, "false"})
+		}
+	}
+
+	// Create Room object
+	room := Room{roomCode, "ongoing", firstTeam, firstTeam, words}
+	// Add new room to redis
+	_, err = rh.JSONSet(room.RoomCode, ".", room)
+
+	if err != nil {
+		writeJSONResponse(w, err.Error(), 500)
+		return
+	}
+
+	// Send Room object back as a response
+	json.NewEncoder(w).Encode(room)
 
 }
 
@@ -122,6 +162,15 @@ func makeRoom(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	// Add 8 reds, 8 blues, 7 spectators, and 1 assassin to the identities slice
+	for i := 1; i < 9; i++ {
+		if i == 1 {
+			identities = append(identities, "red", "blue", "assassin")
+		} else {
+			identities = append(identities, "red", "blue", "spectator")
+		}
+	}
+
 	pool = &redis.Pool{
 		MaxIdle:     10,
 		IdleTimeout: 240 * time.Second,

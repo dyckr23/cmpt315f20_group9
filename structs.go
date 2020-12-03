@@ -15,7 +15,7 @@ type Room struct {
 type Word struct {
 	Text     string `json:"text,omitempty"`
 	Identity string `json:"identity,omitempty"`
-	Revealed bool   `json:"revealed,omitempty"`
+	Revealed string `json:"revealed,omitempty"`
 }
 
 // Player represents a player in a game
