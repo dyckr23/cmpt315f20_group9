@@ -1,6 +1,8 @@
 package main
 
-import "time"
+import (
+	"time"
+)
 
 // Room represents a room in which a game takes place
 type Room struct {
@@ -34,8 +36,8 @@ type Log struct {
 // https://github.com/gomodule/redigo/blob/master/redis/pubsub.go
 
 // Subscription represents a subscribe or unsubscribe notification
-type Subscription struct {
-	Type    string
-	Channel string
-	Subs    int
-}
+//type Subscription struct {
+//	Type    string
+//	Channel string
+//	Subs    int
+//}

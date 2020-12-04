@@ -14,9 +14,12 @@ import (
 	rejson "github.com/nitishm/go-rejson"
 
 	"github.com/gorilla/mux"
+
+	"codenames/websock"
 )
 
 var pool *redis.Pool
+
 var teams []string = []string{"red", "blue"}
 var identities []string
 var size int = 25
@@ -45,9 +48,6 @@ func getTest(w http.ResponseWriter, req *http.Request) {
 // if room exists, return the room's current game state
 // if room does not exist, create a new room and return a new game state
 func getRoom(w http.ResponseWriter, r *http.Request) {
-	// Log request
-	logRequest(w, r)
-
 	// Establish a redis connection
 	conn := pool.Get()
 	defer conn.Close()
@@ -129,9 +129,20 @@ func getRoom(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func makeRoom(w http.ResponseWriter, r *http.Request) {
-	logRequest(w, r)
+func writeJSONResponse(w http.ResponseWriter, message string, code int) {
+	fmt.Println(message)
+	w.Header().Set("Content-type", "application/json")
+	w.WriteHeader(code)
+	response := map[string]interface{}{
+		"message": message,
+	}
+	err := json.NewEncoder(w).Encode(response)
+	if err != nil {
+		fmt.Println(err)
+	}
+}
 
+func makeRoom(w http.ResponseWriter, r *http.Request) {
 	conn := pool.Get()
 	defer conn.Close()
 
@@ -161,6 +172,22 @@ func makeRoom(w http.ResponseWriter, r *http.Request) {
 	//decoder = json.NewDecoder(rh.JSONGet(payload.RoomCode, "."))
 }
 
+func serveWs(broker *websock.Broker, w http.ResponseWriter, r *http.Request) {
+	conn, err := websock.Upgrade(w, r)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
+	client := &websock.Client{
+		Conn:   conn,
+		Broker: broker,
+	}
+
+	broker.Register <- client
+	client.Read()
+}
+
 func main() {
 	// Add 8 reds, 8 blues, 7 spectators, and 1 assassin to the identities slice
 	for i := 1; i < 9; i++ {
@@ -179,16 +206,20 @@ func main() {
 		},
 	}
 
+	broker := websock.Newbroker()
+	go broker.Run()
+
 	router := mux.NewRouter()
 	router.Use(middlewareLogWrapper)
 
 	subrouter := router.PathPrefix("/api/v1").Subrouter()
-
 	subrouter.HandleFunc("/get", getTest).Methods("GET")
-
 	subrouter.HandleFunc("/rooms/{roomCode}", getRoom).Methods("GET")
-
 	subrouter.HandleFunc("/rooms", makeRoom).Methods("POST")
+
+	router.HandleFunc("/websocket", func(w http.ResponseWriter, r *http.Request) {
+		serveWs(broker, w, r)
+	})
 
 	router.PathPrefix("/").Handler(http.FileServer(http.Dir("htdocs")))
 
@@ -199,21 +230,4 @@ func main() {
 
 	log.Println("Listening!")
 	log.Fatal(webserver.ListenAndServe())
-}
-
-func logRequest(w http.ResponseWriter, r *http.Request) {
-	fmt.Printf("%s %s\n", r.Method, r.RequestURI)
-}
-
-func writeJSONResponse(w http.ResponseWriter, message string, code int) {
-	fmt.Println(message)
-	w.Header().Set("Content-type", "application/json")
-	w.WriteHeader(code)
-	response := map[string]interface{}{
-		"message": message,
-	}
-	err := json.NewEncoder(w).Encode(response)
-	if err != nil {
-		fmt.Println(err)
-	}
 }
