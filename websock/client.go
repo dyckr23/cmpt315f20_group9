@@ -1,7 +1,9 @@
 package websock
 
 import (
+	"encoding/json"
 	"log"
+	"strings"
 
 	"codenames/structs"
 
@@ -9,7 +11,6 @@ import (
 )
 
 type Client struct {
-	ID     string
 	Conn   *websocket.Conn
 	Broker *Broker
 }
@@ -21,13 +22,17 @@ func (c *Client) Read() {
 	}()
 
 	for {
-		messageType, p, err := c.Conn.ReadMessage()
+		_, p, err := c.Conn.ReadMessage()
 		if err != nil {
 			log.Println(err)
 			return
 		}
-		message := structs.Message{Type: messageType, Body: string(p)}
-		c.Broker.Broadcast <- message
-		log.Printf("Message Received: %+v\n", message)
+		//message := structs.Message{Type: messageType, Body: string(p)}
+		var move structs.Word
+		decoder := json.NewDecoder(strings.NewReader(string(p)))
+		err = decoder.Decode(&move)
+
+		c.Broker.Broadcast <- move
+		log.Printf("Message Received: %+v\n", move)
 	}
 }

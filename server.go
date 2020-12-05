@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"math/rand"
@@ -21,6 +22,12 @@ import (
 )
 
 var pool *redis.Pool
+
+//var games []*websock.Broker
+var games map[string]*websock.Broker
+
+//!!!
+var devFlag bool
 
 var teams []string = []string{"red", "blue"}
 var identities []string
@@ -174,15 +181,72 @@ func makeRoom(w http.ResponseWriter, r *http.Request) {
 	//decoder = json.NewDecoder(rh.JSONGet(payload.RoomCode, "."))
 }
 
-func serveWs(broker *websock.Broker, w http.ResponseWriter, r *http.Request) {
-	conn, err := websock.Upgrade(w, r)
+func serveWs(w http.ResponseWriter, r *http.Request) {
+	var broker *websock.Broker
+	wConn, err := websock.Upgrade(w, r)
 	if err != nil {
 		log.Println(err)
 		return
 	}
 
+	roomCode := mux.Vars(r)["roomCode"]
+	if roomCode == "" {
+		err = errors.New("websocket error: missing room code")
+		writeJSONResponse(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	rConn := pool.Get()
+	defer rConn.Close()
+
+	exists, err := redis.Bool(rConn.Do("exists", roomCode))
+	if err != nil {
+		writeJSONResponse(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	if !exists {
+		err = errors.New("websocket error: cannot find room")
+		writeJSONResponse(w, err.Error(), http.StatusNotFound)
+		return
+	}
+
+	rh := rejson.NewReJSONHandler()
+	rh.SetRedigoClient(rConn)
+
+	//!!!
+	if !devFlag {
+		devFlag = true
+		testJSON, _ := redis.Bytes(rh.JSONGet("test-room-2", "."))
+		var testState structs.Room
+		err = json.Unmarshal(testJSON, &testState)
+		log.Printf("TEST state loaded: %+v\n", testState)
+		broker = websock.Newbroker("test-room-2", testState)
+		games["test-room-2"] = broker
+		go broker.Run()
+	}
+
+	if _, ok := games[roomCode]; ok {
+		log.Println("Found broker!")
+		broker = games[roomCode]
+	} else {
+		roomJSON, err := redis.Bytes(rh.JSONGet(roomCode, "."))
+		if err != nil {
+			writeJSONResponse(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		roomState := structs.Room{}
+		err = json.Unmarshal(roomJSON, &roomState)
+
+		log.Printf("State loaded: %+v\n", roomState)
+
+		broker = websock.Newbroker(roomCode, roomState)
+		go broker.Run()
+	}
+
 	client := &websock.Client{
-		Conn:   conn,
+		Conn:   wConn,
 		Broker: broker,
 	}
 
@@ -208,8 +272,7 @@ func main() {
 		},
 	}
 
-	broker := websock.Newbroker()
-	go broker.Run()
+	games = make(map[string]*websock.Broker)
 
 	router := mux.NewRouter()
 	router.Use(middlewareLogWrapper)
@@ -218,9 +281,8 @@ func main() {
 	subrouter.HandleFunc("/get", getTest).Methods("GET")
 	subrouter.HandleFunc("/rooms/{roomCode}", getRoom).Methods("GET")
 	subrouter.HandleFunc("/rooms", makeRoom).Methods("POST")
-
-	router.HandleFunc("/websocket", func(w http.ResponseWriter, r *http.Request) {
-		serveWs(broker, w, r)
+	router.HandleFunc("/websocket/{roomCode}", func(w http.ResponseWriter, r *http.Request) {
+		serveWs(w, r)
 	})
 
 	router.PathPrefix("/").Handler(http.FileServer(http.Dir("htdocs")))

@@ -20,6 +20,17 @@ type Word struct {
 	Revealed string `json:"revealed,omitempty"`
 }
 
+type Message struct {
+	Type int    `json:"type"`
+	Body string `json:"body"`
+}
+
+// Move represents a turn taken in a game
+//type Move struct {
+//RoomCode string `json:"roomCode,omitempty"`
+//	Tile Word `json:"tile,omitempty"`
+//}
+
 // Player represents a player in a game
 /*type Player struct {
 	Name string `json:"name,omitempty"`
@@ -30,15 +41,4 @@ type Word struct {
 type Log struct {
 	Text      string    `json:"text,omitempty"`
 	Timestamp time.Time `json:"timestamp,omitempty"`
-}
-
-type Message struct {
-	Type int    `json:"type"`
-	Body string `json:"body"`
-}
-
-// Move represents a turn taken in a game
-type Move struct {
-	RoomCode string `json:"roomCode,omitempty"`
-	Tile     Word   `json:"tile,omitempty"`
 }
