@@ -121,7 +121,21 @@ func getRoom(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Create Room object
-	room := structs.Room{roomCode, "ongoing", firstTeam, firstTeam, words}
+	var room structs.Room
+	//room := structs.Room{roomCode, "ongoing", firstTeam, firstTeam, words}
+	room.RoomCode = roomCode
+	room.Status = "ongoing"
+	room.FirstTeam = firstTeam
+	room.Turn = firstTeam
+	if firstTeam == "blue" {
+		room.BlueHidden = 9
+		room.RedHidden = 8
+	} else {
+		room.BlueHidden = 8
+		room.RedHidden = 9
+	}
+	room.Words = words
+
 	// Add new room to redis
 	_, err = rh.JSONSet(room.RoomCode, ".", room)
 	if err != nil {

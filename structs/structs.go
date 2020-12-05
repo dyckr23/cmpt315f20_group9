@@ -4,11 +4,14 @@ import "time"
 
 // Room represents a room in which a game takes place
 type Room struct {
-	RoomCode  string `json:"roomCode,omitempty"`
-	Status    string `json:"status,omitempty"`
-	FirstTeam string `json:"firstTeam,omitempty"`
-	Turn      string `json:"turn,omitempty"`
-	Words     []Word `json:"words,omitempty"`
+	RoomCode   string `json:"roomCode,omitempty"`
+	Status     string `json:"status,omitempty"`
+	FirstTeam  string `json:"firstTeam,omitempty"`
+	Turn       string `json:"turn,omitempty"`
+	Flipped    int    `json:"flipped,omitempty"`
+	BlueHidden int    `json:"blueHidden,omitempty"`
+	RedHidden  int    `json:"redHidden,omitempty"`
+	Words      []Word `json:"words,omitempty"`
 }
 
 // Word represents one of the 25 words in a game
