@@ -15,6 +15,8 @@ import (
 
 	"github.com/gorilla/mux"
 
+	"codenames/structs"
+
 	"codenames/websock"
 )
 
@@ -77,7 +79,7 @@ func getRoom(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		room := Room{}
+		room := structs.Room{}
 		err = json.Unmarshal(valueJSON, &room)
 
 		if err != nil {
@@ -105,17 +107,17 @@ func getRoom(w http.ResponseWriter, r *http.Request) {
 	// Randomly choose the identities
 	identityIndices := rand.Perm(size)
 	// Create a list of Word objects
-	var words []Word
+	var words []structs.Word
 	for i, word := range values {
 		if identityIndices[i] != size-1 {
-			words = append(words, Word{word, identities[identityIndices[i]], "false"})
+			words = append(words, structs.Word{word, identities[identityIndices[i]], "false"})
 		} else {
-			words = append(words, Word{word, firstTeam, "false"})
+			words = append(words, structs.Word{word, firstTeam, "false"})
 		}
 	}
 
 	// Create Room object
-	room := Room{roomCode, "ongoing", firstTeam, firstTeam, words}
+	room := structs.Room{roomCode, "ongoing", firstTeam, firstTeam, words}
 	// Add new room to redis
 	_, err = rh.JSONSet(room.RoomCode, ".", room)
 
@@ -146,7 +148,7 @@ func makeRoom(w http.ResponseWriter, r *http.Request) {
 	conn := pool.Get()
 	defer conn.Close()
 
-	var payload Room
+	var payload structs.Room
 	decoder := json.NewDecoder(r.Body)
 	err := decoder.Decode(&payload)
 	if err != nil {

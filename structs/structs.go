@@ -1,4 +1,4 @@
-package main
+package structs
 
 import (
 	"time"
@@ -21,10 +21,10 @@ type Word struct {
 }
 
 // Player represents a player in a game
-type Player struct {
+/*type Player struct {
 	Name string `json:"name,omitempty"`
 	Role string `json:"role,omitempty"`
-}
+}*/
 
 // Log represents a log message in a game
 type Log struct {
@@ -32,12 +32,13 @@ type Log struct {
 	Timestamp time.Time `json:"timestamp,omitempty"`
 }
 
-// REF
-// https://github.com/gomodule/redigo/blob/master/redis/pubsub.go
+type Message struct {
+	Type int    `json:"type"`
+	Body string `json:"body"`
+}
 
-// Subscription represents a subscribe or unsubscribe notification
-//type Subscription struct {
-//	Type    string
-//	Channel string
-//	Subs    int
-//}
+// Move represents a turn taken in a game
+type Move struct {
+	RoomCode string `json:"roomCode,omitempty"`
+	Tile     Word   `json:"tile,omitempty"`
+}

@@ -1,12 +1,15 @@
 package websock
 
-import "fmt"
+import (
+	"codenames/structs"
+	"fmt"
+)
 
 type Broker struct {
 	Register   chan *Client
 	Unregister chan *Client
 	Clients    map[*Client]bool
-	Broadcast  chan Message
+	Broadcast  chan structs.Message
 }
 
 func Newbroker() *Broker {
@@ -14,7 +17,7 @@ func Newbroker() *Broker {
 		Register:   make(chan *Client),
 		Unregister: make(chan *Client),
 		Clients:    make(map[*Client]bool),
-		Broadcast:  make(chan Message),
+		Broadcast:  make(chan structs.Message),
 	}
 }
 
@@ -25,14 +28,14 @@ func (broker *Broker) Run() {
 			broker.Clients[client] = true
 			fmt.Println("Number of clients: ", len(broker.Clients))
 			for client, _ := range broker.Clients {
-				client.Conn.WriteJSON(Message{Type: 1, Body: "New client"})
+				client.Conn.WriteJSON(structs.Message{Type: 1, Body: "New client"})
 			}
 			break
 		case client := <-broker.Unregister:
 			delete(broker.Clients, client)
 			fmt.Println("Size of Connection broker: ", len(broker.Clients))
 			for client, _ := range broker.Clients {
-				client.Conn.WriteJSON(Message{Type: 1, Body: "Client disconnect"})
+				client.Conn.WriteJSON(structs.Message{Type: 1, Body: "Client disconnect"})
 			}
 			break
 		case message := <-broker.Broadcast:
