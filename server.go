@@ -226,7 +226,7 @@ func main() {
 	router.PathPrefix("/").Handler(http.FileServer(http.Dir("htdocs")))
 
 	webserver := &http.Server{
-		Addr:    ":8000",
+		Addr:    ":8080",
 		Handler: router,
 	}
 
