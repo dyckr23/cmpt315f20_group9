@@ -1,8 +1,6 @@
 package structs
 
-import (
-	"time"
-)
+import "time"
 
 // Room represents a room in which a game takes place
 type Room struct {
@@ -13,23 +11,12 @@ type Room struct {
 	Words     []Word `json:"words,omitempty"`
 }
 
-// Word represents the 25 words in a game
+// Word represents one of the 25 words in a game
 type Word struct {
 	Text     string `json:"text,omitempty"`
 	Identity string `json:"identity,omitempty"`
 	Revealed string `json:"revealed,omitempty"`
 }
-
-type Message struct {
-	Type int    `json:"type"`
-	Body string `json:"body"`
-}
-
-// Move represents a turn taken in a game
-//type Move struct {
-//RoomCode string `json:"roomCode,omitempty"`
-//	Tile Word `json:"tile,omitempty"`
-//}
 
 // Player represents a player in a game
 /*type Player struct {

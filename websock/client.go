@@ -10,11 +10,14 @@ import (
 	"github.com/gorilla/websocket"
 )
 
+// Client is a websocket remote endpoint, a frontend
 type Client struct {
 	Conn   *websocket.Conn
 	Broker *Broker
 }
 
+// Clients attached to concurrent brokers will listen for and read messages
+// sent to them from the frontend
 func (c *Client) Read() {
 	defer func() {
 		c.Broker.Unregister <- c
@@ -22,17 +25,16 @@ func (c *Client) Read() {
 	}()
 
 	for {
-		_, p, err := c.Conn.ReadMessage()
+		_, buf, err := c.Conn.ReadMessage()
 		if err != nil {
 			log.Println(err)
 			return
 		}
-		//message := structs.Message{Type: messageType, Body: string(p)}
 		var move structs.Word
-		decoder := json.NewDecoder(strings.NewReader(string(p)))
+		decoder := json.NewDecoder(strings.NewReader(string(buf)))
 		err = decoder.Decode(&move)
 
 		c.Broker.Broadcast <- move
-		log.Printf("Message Received: %+v\n", move)
+		log.Printf("Client: Move received: %+v\n", move)
 	}
 }

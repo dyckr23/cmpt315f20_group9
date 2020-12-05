@@ -41,7 +41,7 @@ func middlewareLogWrapper(next http.Handler) http.Handler {
 	})
 }
 
-func getTest(w http.ResponseWriter, req *http.Request) {
+/*func getTest(w http.ResponseWriter, req *http.Request) {
 	conn := pool.Get()
 	defer conn.Close()
 
@@ -51,7 +51,7 @@ func getTest(w http.ResponseWriter, req *http.Request) {
 	}
 
 	fmt.Println(val)
-}
+}*/
 
 // getRoom function handles get requests with a room code
 // if room exists, return the room's current game state
@@ -80,7 +80,6 @@ func getRoom(w http.ResponseWriter, r *http.Request) {
 		fmt.Printf("Room exists: %s\n", roomCode)
 
 		valueJSON, err := redis.Bytes(rh.JSONGet(roomCode, "."))
-
 		if err != nil {
 			writeJSONResponse(w, err.Error(), 500)
 			return
@@ -88,7 +87,6 @@ func getRoom(w http.ResponseWriter, r *http.Request) {
 
 		room := structs.Room{}
 		err = json.Unmarshal(valueJSON, &room)
-
 		if err != nil {
 			writeJSONResponse(w, err.Error(), 500)
 		}
@@ -102,7 +100,6 @@ func getRoom(w http.ResponseWriter, r *http.Request) {
 
 	// Fetch 25 random words from wordlist
 	values, err := redis.Strings(conn.Do("SRANDMEMBER", "wordlist", size))
-
 	if err != nil {
 		writeJSONResponse(w, err.Error(), 500)
 		return
@@ -127,7 +124,6 @@ func getRoom(w http.ResponseWriter, r *http.Request) {
 	room := structs.Room{roomCode, "ongoing", firstTeam, firstTeam, words}
 	// Add new room to redis
 	_, err = rh.JSONSet(room.RoomCode, ".", room)
-
 	if err != nil {
 		writeJSONResponse(w, err.Error(), 500)
 		return
@@ -135,7 +131,6 @@ func getRoom(w http.ResponseWriter, r *http.Request) {
 
 	// Send Room object back as a response
 	json.NewEncoder(w).Encode(room)
-
 }
 
 func writeJSONResponse(w http.ResponseWriter, message string, code int) {
@@ -225,6 +220,7 @@ func serveWs(w http.ResponseWriter, r *http.Request) {
 		games["test-room-2"] = broker
 		go broker.Run()
 	}
+	//!!!
 
 	if _, ok := games[roomCode]; ok {
 		log.Println("Found broker!")
@@ -273,18 +269,14 @@ func main() {
 	}
 
 	games = make(map[string]*websock.Broker)
-
 	router := mux.NewRouter()
 	router.Use(middlewareLogWrapper)
 
 	subrouter := router.PathPrefix("/api/v1").Subrouter()
-	subrouter.HandleFunc("/get", getTest).Methods("GET")
 	subrouter.HandleFunc("/rooms/{roomCode}", getRoom).Methods("GET")
 	subrouter.HandleFunc("/rooms", makeRoom).Methods("POST")
-	router.HandleFunc("/websocket/{roomCode}", func(w http.ResponseWriter, r *http.Request) {
-		serveWs(w, r)
-	})
 
+	router.HandleFunc("/websocket/{roomCode}", serveWs)
 	router.PathPrefix("/").Handler(http.FileServer(http.Dir("htdocs")))
 
 	webserver := &http.Server{
