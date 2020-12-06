@@ -7,7 +7,7 @@ function getGameState() {
         updateView(data);
     });
     console.log(window.location.pathname);
-    req.open("GET", "/api/v1/" + window.location.pathname);
+    req.open("GET", "/api/v1/rooms" + window.location.pathname);
     req.send();
 }
 function updateView(data) {
@@ -16,7 +16,7 @@ function updateView(data) {
     let boardTemplate = $("#game-state-board-template").html();
     // Create render functions for the templates with doT.template
     let headerRenderFunction = doT.template(headerTemplate);
-    let boardRenderFunction = doT.template(headerTemplate);
+    let boardRenderFunction = doT.template(boardTemplate);
     // Use the render functions to render the data
     let headerRendered = headerRenderFunction(data);
     let boardRendered = boardRenderFunction(data);
@@ -27,3 +27,4 @@ function updateView(data) {
 $(function () {
     $('[data-toggle="popover"]').popover();
 });
+getGameState();

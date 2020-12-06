@@ -8,6 +8,8 @@ import (
 	"math/rand"
 	"net"
 	"net/http"
+	"net/url"
+	"strings"
 	"time"
 
 	"github.com/gomodule/redigo/redis"
@@ -211,16 +213,16 @@ func serveWs(w http.ResponseWriter, r *http.Request) {
 	rh.SetRedigoClient(rConn)
 
 	//!!!
-	if !devFlag {
+	/*if !devFlag {
 		devFlag = true
-		testJSON, _ := redis.Bytes(rh.JSONGet("test-room-2", "."))
+		testJSON, _ := redis.Bytes(rh.JSONGet("test-room-rd", "."))
 		var testState structs.Room
 		err = json.Unmarshal(testJSON, &testState)
 		log.Printf("TEST state loaded: %+v\n", testState)
-		broker = websock.Newbroker("test-room-2", testState)
-		games["test-room-2"] = broker
+		broker = websock.Newbroker("test-room-rd", testState)
+		games["test-room-rd"] = broker
 		go broker.Run()
-	}
+	}*/
 	//!!!
 
 	if _, ok := games[roomCode]; ok {
@@ -239,6 +241,7 @@ func serveWs(w http.ResponseWriter, r *http.Request) {
 		log.Printf("State loaded: %+v\n", roomState)
 
 		broker = websock.Newbroker(roomCode, roomState)
+		games[roomCode] = broker
 		go broker.Run()
 	}
 
@@ -261,6 +264,42 @@ func serveGamePage(w http.ResponseWriter, r *http.Request) {
 
 	sendTo := "htdocs/game.html"
 	http.ServeFile(w, r, sendTo)
+}
+
+func serveGame(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+		log.Println("request URI", r.RequestURI)
+		log.Println("request URL", r.URL)
+
+		conn := pool.Get()
+		defer conn.Close()
+		rh := rejson.NewReJSONHandler()
+		rh.SetRedigoClient(conn)
+
+		roomCode := r.RequestURI
+		roomCode = strings.Trim(roomCode, "/")
+
+		log.Println(roomCode)
+
+		exists, err := redis.Bool(conn.Do("exists", roomCode))
+		if err != nil {
+			writeJSONResponse(w, err.Error(), 500)
+			return
+		}
+
+		log.Println(exists)
+
+		if exists {
+			fmt.Printf("Room exists: %s\n", roomCode)
+
+			redir := new(url.URL)
+			redir.Path = "/game.html"
+			r.URL = redir
+		}
+
+		next.ServeHTTP(w, r)
+	})
 }
 
 func main() {
@@ -287,10 +326,12 @@ func main() {
 
 	subrouter := router.PathPrefix("/api/v1").Subrouter()
 	subrouter.HandleFunc("/rooms/{roomCode}", getRoom).Methods("GET")
-	subrouter.HandleFunc("/rooms", makeRoom).Methods("POST")
+	//subrouter.HandleFunc("/rooms", makeRoom).Methods("POST")
 
 	router.HandleFunc("/websocket/{roomCode}", serveWs)
-	router.HandleFunc("/rooms/{id}", serveGamePage)
+	//router.HandleFunc("/{id}", serveGamePage)
+	//router.PathPrefix("/test-room-2").Handler(http.StripPrefix("/test-room-2", serveGame))
+	router.Use(serveGame)
 	router.PathPrefix("/").Handler(http.FileServer(http.Dir("htdocs")))
 
 	webserver := &http.Server{

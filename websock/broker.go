@@ -37,7 +37,7 @@ func (broker *Broker) Run() {
 		select {
 		case client := <-broker.Register:
 			broker.Clients[client] = true
-			log.Printf("Broker %s: disconnect, size %d ", broker.Name, len(broker.Clients))
+			log.Printf("Broker %s: connect, size %d ", broker.Name, len(broker.Clients))
 			for client := range broker.Clients {
 				client.Conn.WriteMessage(1, []byte("Connected"))
 			}
@@ -52,10 +52,12 @@ func (broker *Broker) Run() {
 		case move := <-broker.Broadcast:
 			log.Printf("Broker: Move received: %+v\n", move)
 			for client := range broker.Clients {
+				log.Println("\n\n----")
 				log.Printf("Before: %+v\n", broker.Room)
 				//Process move according to game rules and update state
-				rules.ProcessRules(move, broker.Room)
+				rules.ProcessRules(&move, &broker.Room)
 				log.Println("\n\n----")
+				log.Printf("Move after: %+v\n", move)
 				log.Printf("After: %+v\n", broker.Room)
 				if err := client.Conn.WriteJSON(broker.Room); err != nil {
 					fmt.Println(err)
