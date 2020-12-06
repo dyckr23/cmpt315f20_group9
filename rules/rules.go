@@ -37,6 +37,27 @@ func ProcessRules(move structs.Word, game structs.Room) {
 		}
 		game.Turn = "blue"
 		return
+	case "blue":
+		game.BlueHidden--
+		if game.BlueHidden == 0 {
+			game.Status = "blue win!"
+			return
+		} else if game.Turn == "blue" {
+			return
+		} else if game.Turn == "red" {
+			game.Turn = "blue"
+			return
+		}
+	case "red":
+		game.RedHidden--
+		if game.RedHidden == 0 {
+			game.Status = "red win!"
+			return
+		} else if game.Turn == "red" {
+			return
+		} else if game.Turn == "blue" {
+			game.Turn = "red"
+			return
+		}
 	}
-
 }

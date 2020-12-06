@@ -54,7 +54,7 @@ func (broker *Broker) Run() {
 			for client := range broker.Clients {
 				//Process move according to game rules and update state
 				rules.ProcessRules(move, broker.Room)
-				if err := client.Conn.WriteJSON(move); err != nil {
+				if err := client.Conn.WriteJSON(broker.Room); err != nil {
 					fmt.Println(err)
 					return
 				}
