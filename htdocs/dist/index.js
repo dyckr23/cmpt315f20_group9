@@ -6,10 +6,10 @@ $("#room-code-input").on("keydown", function search(e) {
         req.addEventListener("load", function (event) {
             let data = JSON.parse(req.responseText);
             console.log(data);
+            window.location.href = "/" + value;
         });
         req.open("GET", "/api/v1/rooms/" + value);
         req.send();
-        console.log(window.location.pathname);
-        window.location.href = "/" + value;
+        //console.log(window.location.pathname);
     }
 });

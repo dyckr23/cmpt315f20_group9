@@ -64,7 +64,7 @@ func getRoom(w http.ResponseWriter, r *http.Request) {
 	}
 	// If room exists, respond with current game state
 	if exists {
-		fmt.Printf("Room exists: %s\n", roomCode)
+		log.Printf("getRoom: room exists: %s\n", roomCode)
 
 		valueJSON, err := redis.Bytes(rh.JSONGet(roomCode, "."))
 		if err != nil {
@@ -203,7 +203,7 @@ func serveWs(w http.ResponseWriter, r *http.Request) {
 	//!!!
 
 	if _, ok := games[roomCode]; ok {
-		log.Println("Found broker!")
+		log.Println("serveWs: found broker for ", roomCode)
 		broker = games[roomCode]
 	} else {
 		roomJSON, err := redis.Bytes(rh.JSONGet(roomCode, "."))
@@ -215,7 +215,7 @@ func serveWs(w http.ResponseWriter, r *http.Request) {
 		roomState := structs.Room{}
 		err = json.Unmarshal(roomJSON, &roomState)
 
-		log.Printf("State loaded: %+v\n", roomState)
+		log.Printf("serveWS: state loaded: %+v\n", roomState)
 
 		broker = websock.Newbroker(roomCode, roomState)
 		games[roomCode] = broker
@@ -234,8 +234,7 @@ func serveWs(w http.ResponseWriter, r *http.Request) {
 func serveGame(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
-		log.Println("request URI", r.RequestURI)
-		log.Println("request URL", r.URL)
+		log.Println("serveGame examining request URI:", r.RequestURI)
 
 		conn := pool.Get()
 		defer conn.Close()
@@ -245,22 +244,19 @@ func serveGame(next http.Handler) http.Handler {
 		roomCode := r.RequestURI
 		roomCode = strings.Trim(roomCode, "/")
 
-		log.Println(roomCode)
-
 		exists, err := redis.Bool(conn.Do("exists", roomCode))
 		if err != nil {
 			writeJSONResponse(w, err.Error(), 500)
 			return
 		}
 
-		log.Println(exists)
+		log.Printf("serveGame: Room %s exists: %v\n", roomCode, exists)
 
 		if exists {
-			fmt.Printf("Room exists: %s\n", roomCode)
-
 			redir := new(url.URL)
 			redir.Path = "/game.html"
 			r.URL = redir
+			log.Printf("serveGame: rewrote %+v\n", r.URL)
 		}
 
 		next.ServeHTTP(w, r)

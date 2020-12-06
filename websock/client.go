@@ -31,6 +31,9 @@ func (c *Client) Read() {
 			return
 		}
 		var move structs.Word
+
+		log.Printf("Client: raw received: %s\n", string(buf))
+
 		decoder := json.NewDecoder(strings.NewReader(string(buf)))
 		err = decoder.Decode(&move)
 

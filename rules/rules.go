@@ -14,7 +14,8 @@ func ProcessRules(move structs.Word, game structs.Room) structs.Room {
 		log.Fatalf("Fatal error: referenced finished game %s", game.RoomCode)
 	}
 	if move.Revealed == "true" {
-		log.Fatalf("Fatal error: room %s sent flipped card", game.RoomCode)
+		//log.Fatalf("Fatal error: room %s sent flipped card", game.RoomCode)
+		log.Printf("ERROR: room %s sent flipped card", game.RoomCode)
 	}
 
 	for i, v := range game.Words {

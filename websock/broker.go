@@ -1,7 +1,6 @@
 package websock
 
 import (
-	"fmt"
 	"log"
 
 	"codenames/datastore"
@@ -61,7 +60,7 @@ func (broker *Broker) Run() {
 
 			for client := range broker.Clients {
 				if err := client.Conn.WriteJSON(broker.Room); err != nil {
-					fmt.Println(err)
+					log.Println(err)
 					return
 				}
 			}

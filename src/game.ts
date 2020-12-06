@@ -97,15 +97,17 @@ function spymasterView() {
 }
 
 function sendMove(index: number) {
-  conn.send(data.words[index]);
+  conn.send(JSON.stringify(data.words[index]));
+  console.log("SENDING " + JSON.stringify(data.words[index]))
 }
 
 function updateState(event: MessageEvent) {
   if (event.data != null) {
-    console.log(event);
+    console.log("EVENT " + JSON.stringify(event));
+    console.log("EVENT DATA " + event.data);
     try {
       var dataParsed = JSON.parse(event.data);
-      console.log(dataParsed);
+      console.log("DATA PARSED: " + JSON.stringify(dataParsed));
       data = dataParsed;
       updateView(data);
     } catch(e) {
