@@ -100,14 +100,19 @@ func getRoom(w http.ResponseWriter, r *http.Request) {
 	// Create a list of Word objects
 	var words []structs.Word
 	for i, text := range values {
-		word := structs.Word{
-			Text:     text,
-			Identity: identities[identityIndices[i]],
-			Revealed: "false",
-		}
 		if identityIndices[i] != size-1 {
+			word := structs.Word{
+				Text:     text,
+				Identity: identities[identityIndices[i]],
+				Revealed: "false",
+			}
 			words = append(words, word)
 		} else {
+			word := structs.Word{
+				Text:     text,
+				Identity: firstTeam,
+				Revealed: "false",
+			}
 			words = append(words, word)
 		}
 	}
