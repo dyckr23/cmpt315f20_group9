@@ -23,7 +23,6 @@ import (
 
 var pool *redis.Pool
 
-//var games []*websock.Broker
 var games map[string]*websock.Broker
 
 //!!!
@@ -40,18 +39,6 @@ func middlewareLogWrapper(next http.Handler) http.Handler {
 		next.ServeHTTP(w, r)
 	})
 }
-
-/*func getTest(w http.ResponseWriter, req *http.Request) {
-	conn := pool.Get()
-	defer conn.Close()
-
-	val, err := redis.String(conn.Do("get", "test"))
-	if err != nil {
-		fmt.Println("handle errors better!")
-	}
-
-	fmt.Println(val)
-}*/
 
 // getRoom function handles get requests with a room code
 // if room exists, return the room's current game state
@@ -265,12 +252,15 @@ func serveWs(w http.ResponseWriter, r *http.Request) {
 }
 
 func serveGamePage(w http.ResponseWriter, r *http.Request) {
-	fs := http.FileServer(http.Dir("./htdocs"))
+	/*fs := http.FileServer(http.Dir("./htdocs"))
 	fmt.Println("Go here!")
 	fmt.Println(r.URL.Path)
 	r.URL.Path = "game.html"
 
-	fs.ServeHTTP(w, r)
+	fs.ServeHTTP(w, r)*/
+
+	sendTo := "htdocs/game.html"
+	http.ServeFile(w, r, sendTo)
 }
 
 func main() {
@@ -300,7 +290,7 @@ func main() {
 	subrouter.HandleFunc("/rooms", makeRoom).Methods("POST")
 
 	router.HandleFunc("/websocket/{roomCode}", serveWs)
-	router.PathPrefix("/rooms/{id}").HandlerFunc(serveGamePage)
+	router.HandleFunc("/rooms/{id}", serveGamePage)
 	router.PathPrefix("/").Handler(http.FileServer(http.Dir("htdocs")))
 
 	webserver := &http.Server{
