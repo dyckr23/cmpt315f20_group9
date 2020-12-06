@@ -42,7 +42,12 @@ a:hover {
 }
 
 .unrevealed {
+    border: 5px solid transparent;
     background-color: var(--unrevealed);
+    cursor: pointer;
+}
+.unrevealed:hover {
+    font-size: 120%;
 }
 
 .red-unrevealed {
@@ -141,10 +146,16 @@ a:hover {
     font-size: 120%;
 }
 
+#game-state-header {
+    min-height: 50px;
+    align-items: center;
+}
+
 table {
-    min-width: 100%;
+    width: 100%;
     border-collapse: separate;
     border-spacing: 20px;
+    table-layout: fixed;
 }
 td {
     border-radius: 20px;
