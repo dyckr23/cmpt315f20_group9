@@ -264,6 +264,15 @@ func serveWs(w http.ResponseWriter, r *http.Request) {
 	client.Read()
 }
 
+func serveGamePage(w http.ResponseWriter, r *http.Request) {
+	fs := http.FileServer(http.Dir("./htdocs"))
+	fmt.Println("Go here!")
+	fmt.Println(r.URL.Path)
+	r.URL.Path = "game.html"
+
+	fs.ServeHTTP(w, r)
+}
+
 func main() {
 	// Add 8 reds, 8 blues, 7 spectators, and 1 assassin to the identities slice
 	for i := 1; i < 9; i++ {
@@ -291,6 +300,7 @@ func main() {
 	subrouter.HandleFunc("/rooms", makeRoom).Methods("POST")
 
 	router.HandleFunc("/websocket/{roomCode}", serveWs)
+	router.PathPrefix("/rooms/{id}").HandlerFunc(serveGamePage)
 	router.PathPrefix("/").Handler(http.FileServer(http.Dir("htdocs")))
 
 	webserver := &http.Server{

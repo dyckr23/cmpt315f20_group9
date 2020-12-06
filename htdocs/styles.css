@@ -86,10 +86,21 @@ a:hover {
     font-weight: 600;
 }
 
-.my-btn {
-    border-radius: 10px;
+.my-form-row > input {
+    width: 100%;
     border: 2px solid var(--black);
+    border-radius: 10px;
+    padding: 10px;
+}
+.my-form-row > input:focus {
+    outline: none !important;
+    border: 3px solid var(--black);
+}
+
+.my-btn {
     min-width: 130px;
+    border: 2px solid var(--black);
+    border-radius: 10px;
     -webkit-transition-duration: .1s;
     transition-duration: .1s;
 }
