@@ -28,7 +28,11 @@
                     <span > - </span>
                     <span class="red bold">{{=it.redHidden}}</span>
                 </div>
-                <div class="col-sm-2 px-0 text-center bold {{=it.turn}}">{{=it.turn}}'s turn</div>
+                {{?it.status=="ongoing"}}
+                    <div class="col-sm-2 px-0 text-center bold {{=it.turn}}">{{=it.turn}}'s turn</div>
+                {{??}}
+                    <div class="col-sm-2 px-0 text-center bold {{=it.status}}">{{=it.status}} wins!</div>
+                {{?}}
                 <div class="col-sm-2 px-0 text-right">
                     <button type="button" class="my-btn btn btn-outline-dark" id="end-turn-btn">End turn</button>
                 </div>
@@ -44,7 +48,11 @@
                 <tbody>
                     {{~it.words :value:index}}
                     {{?index%size==0}} <tr> {{?}}
+                    {{?value.revealed=="false"}}
                         <td class="word-tile unrevealed">{{=value.text}}</td>
+                    {{??}}
+                        <td class="word-tile {{=value.identity}}-revealed">{{=value.text}}</td>
+                    {{?}}
                     {{?index%size==(size-1)}} </tr> {{?}}
                     {{~}}
                 </tbody>
