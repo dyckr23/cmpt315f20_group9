@@ -11,8 +11,11 @@ import (
 // ProcessRules applies the rules of the game using the word that was chosen
 // as a move, to the game state contained within the session broker
 func ProcessRules(move structs.Word, game structs.Room) {
+	log.Println()
 	fmt.Printf("Rules got move: %+v\n", move)
+	log.Println()
 	fmt.Printf("In game state: %+v\n", game)
+	log.Println()
 
 	if strings.Contains(game.Status, "win!") {
 		log.Fatalf("Fatal error: referenced finished game %s", game.RoomCode)

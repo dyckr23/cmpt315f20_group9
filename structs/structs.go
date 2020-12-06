@@ -8,7 +8,6 @@ type Room struct {
 	Status     string `json:"status,omitempty"`
 	FirstTeam  string `json:"firstTeam,omitempty"`
 	Turn       string `json:"turn,omitempty"`
-	Flipped    int    `json:"flipped,omitempty"`
 	BlueHidden int    `json:"blueHidden,omitempty"`
 	RedHidden  int    `json:"redHidden,omitempty"`
 	Words      []Word `json:"words,omitempty"`

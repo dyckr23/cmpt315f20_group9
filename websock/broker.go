@@ -52,8 +52,11 @@ func (broker *Broker) Run() {
 		case move := <-broker.Broadcast:
 			log.Printf("Broker: Move received: %+v\n", move)
 			for client := range broker.Clients {
+				log.Printf("Before: %+v\n", broker.Room)
 				//Process move according to game rules and update state
 				rules.ProcessRules(move, broker.Room)
+				log.Println("\n\n----")
+				log.Printf("After: %+v\n", broker.Room)
 				if err := client.Conn.WriteJSON(broker.Room); err != nil {
 					fmt.Println(err)
 					return
