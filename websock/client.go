@@ -5,9 +5,9 @@ import (
 	"log"
 	"strings"
 
-	"codenames/structs"
-
 	"github.com/gorilla/websocket"
+
+	"codenames/structs"
 )
 
 // Client is a websocket remote endpoint, a frontend

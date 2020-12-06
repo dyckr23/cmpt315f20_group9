@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 
+	"codenames/datastore"
 	"codenames/rules"
 	"codenames/structs"
 )
@@ -38,6 +39,7 @@ func (broker *Broker) Run() {
 		case client := <-broker.Register:
 			broker.Clients[client] = true
 			log.Printf("Broker %s: connect, size %d ", broker.Name, len(broker.Clients))
+
 			for client := range broker.Clients {
 				client.Conn.WriteMessage(1, []byte("Connected"))
 			}
@@ -45,20 +47,19 @@ func (broker *Broker) Run() {
 		case client := <-broker.Unregister:
 			delete(broker.Clients, client)
 			log.Printf("Broker %s: disconnect, size %d ", broker.Name, len(broker.Clients))
+
 			for client := range broker.Clients {
 				client.Conn.WriteMessage(1, []byte("Disconnected"))
 			}
 			break
 		case move := <-broker.Broadcast:
 			log.Printf("Broker: Move received: %+v\n", move)
+			// Process move according to game rules and update state
+			broker.Room = rules.ProcessRules(move, broker.Room)
+			// Save game state after the move is processed
+			datastore.UpdateGame(broker.Room)
+
 			for client := range broker.Clients {
-				log.Println("\n\n----")
-				log.Printf("Before: %+v\n", broker.Room)
-				//Process move according to game rules and update state
-				rules.ProcessRules(&move, &broker.Room)
-				log.Println("\n\n----")
-				log.Printf("Move after: %+v\n", move)
-				log.Printf("After: %+v\n", broker.Room)
 				if err := client.Conn.WriteJSON(broker.Room); err != nil {
 					fmt.Println(err)
 					return

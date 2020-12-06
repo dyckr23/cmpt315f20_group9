@@ -13,13 +13,11 @@ import (
 	"time"
 
 	"github.com/gomodule/redigo/redis"
-
-	rejson "github.com/nitishm/go-rejson"
-
 	"github.com/gorilla/mux"
+	"github.com/nitishm/go-rejson"
 
+	"codenames/datastore"
 	"codenames/structs"
-
 	"codenames/websock"
 )
 
@@ -28,7 +26,7 @@ var pool *redis.Pool
 var games map[string]*websock.Broker
 
 //!!!
-var devFlag bool
+//var devFlag bool
 
 var teams []string = []string{"red", "blue"}
 var identities []string
@@ -101,17 +99,21 @@ func getRoom(w http.ResponseWriter, r *http.Request) {
 	identityIndices := rand.Perm(size)
 	// Create a list of Word objects
 	var words []structs.Word
-	for i, word := range values {
+	for i, text := range values {
+		word := structs.Word{
+			Text:     text,
+			Identity: identities[identityIndices[i]],
+			Revealed: "false",
+		}
 		if identityIndices[i] != size-1 {
-			words = append(words, structs.Word{word, identities[identityIndices[i]], "false"})
+			words = append(words, word)
 		} else {
-			words = append(words, structs.Word{word, firstTeam, "false"})
+			words = append(words, word)
 		}
 	}
 
 	// Create Room object
 	var room structs.Room
-	//room := structs.Room{roomCode, "ongoing", firstTeam, firstTeam, words}
 	room.RoomCode = roomCode
 	room.Status = "ongoing"
 	room.FirstTeam = firstTeam
@@ -147,36 +149,6 @@ func writeJSONResponse(w http.ResponseWriter, message string, code int) {
 	if err != nil {
 		fmt.Println(err)
 	}
-}
-
-func makeRoom(w http.ResponseWriter, r *http.Request) {
-	conn := pool.Get()
-	defer conn.Close()
-
-	var payload structs.Room
-	decoder := json.NewDecoder(r.Body)
-	err := decoder.Decode(&payload)
-	if err != nil {
-		fmt.Printf("Error! %s\n", err.Error())
-	}
-
-	fmt.Println(payload)
-
-	// Check for pre-existing id????
-	//roomCode := mux.Vars(r)["roomCode"]
-
-	rh := rejson.NewReJSONHandler()
-	rh.SetRedigoClient(conn)
-
-	res, err := rh.JSONSet(payload.RoomCode, ".", payload)
-	if err != nil {
-		fmt.Printf("Error jsonset: %s\n", err.Error())
-	}
-
-	fmt.Println(res)
-
-	//var test Room
-	//decoder = json.NewDecoder(rh.JSONGet(payload.RoomCode, "."))
 }
 
 func serveWs(w http.ResponseWriter, r *http.Request) {
@@ -254,18 +226,6 @@ func serveWs(w http.ResponseWriter, r *http.Request) {
 	client.Read()
 }
 
-func serveGamePage(w http.ResponseWriter, r *http.Request) {
-	/*fs := http.FileServer(http.Dir("./htdocs"))
-	fmt.Println("Go here!")
-	fmt.Println(r.URL.Path)
-	r.URL.Path = "game.html"
-
-	fs.ServeHTTP(w, r)*/
-
-	sendTo := "htdocs/game.html"
-	http.ServeFile(w, r, sendTo)
-}
-
 func serveGame(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
@@ -319,6 +279,7 @@ func main() {
 			return redis.Dial("tcp", "localhost:6379")
 		},
 	}
+	datastore.SetPool(pool)
 
 	games = make(map[string]*websock.Broker)
 	router := mux.NewRouter()
@@ -326,11 +287,8 @@ func main() {
 
 	subrouter := router.PathPrefix("/api/v1").Subrouter()
 	subrouter.HandleFunc("/rooms/{roomCode}", getRoom).Methods("GET")
-	//subrouter.HandleFunc("/rooms", makeRoom).Methods("POST")
 
 	router.HandleFunc("/websocket/{roomCode}", serveWs)
-	//router.HandleFunc("/{id}", serveGamePage)
-	//router.PathPrefix("/test-room-2").Handler(http.StripPrefix("/test-room-2", serveGame))
 	router.Use(serveGame)
 	router.PathPrefix("/").Handler(http.FileServer(http.Dir("htdocs")))
 

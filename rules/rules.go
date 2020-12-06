@@ -9,59 +9,59 @@ import (
 
 // ProcessRules applies the rules of the game using the word that was chosen
 // as a move, to the game state contained within the session broker
-func ProcessRules(move *structs.Word, game *structs.Room) {
-	/*log.Println()
-	fmt.Printf("Rules got move: %+v\n", move)
-	log.Println()
-	fmt.Printf("In game state: %+v\n", game)
-	log.Println()*/
-
+func ProcessRules(move structs.Word, game structs.Room) structs.Room {
 	if strings.Contains(game.Status, "win!") {
 		log.Fatalf("Fatal error: referenced finished game %s", game.RoomCode)
 	}
 	if move.Revealed == "true" {
 		log.Fatalf("Fatal error: room %s sent flipped card", game.RoomCode)
 	}
-	move.Revealed = "true"
 
-	log.Printf("In rules: %+v\n\n", move)
+	for i, v := range game.Words {
+		if v.Text == move.Text {
+			v.Revealed = "true"
+			game.Words[i] = v
+			break
+		}
+	}
 
 	switch move.Identity {
 	case "assassin":
 		if game.Turn == "blue" {
 			game.Status = "red win!"
-			return
+			return game
 		}
 		game.Status = "blue win!"
-		return
+		return game
 	case "spectator":
 		if game.Turn == "blue" {
 			game.Turn = "red"
-			return
+			return game
 		}
 		game.Turn = "blue"
-		return
+		return game
 	case "blue":
 		game.BlueHidden--
 		if game.BlueHidden == 0 {
 			game.Status = "blue win!"
-			return
+			return game
 		} else if game.Turn == "blue" {
-			return
+			return game
 		} else if game.Turn == "red" {
 			game.Turn = "blue"
-			return
+			return game
 		}
 	case "red":
 		game.RedHidden--
 		if game.RedHidden == 0 {
 			game.Status = "red win!"
-			return
+			return game
 		} else if game.Turn == "red" {
-			return
+			return game
 		} else if game.Turn == "blue" {
 			game.Turn = "red"
-			return
+			return game
 		}
 	}
+	return game
 }

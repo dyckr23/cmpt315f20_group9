@@ -20,12 +20,6 @@ type Word struct {
 	Revealed string `json:"revealed,omitempty"`
 }
 
-// Player represents a player in a game
-/*type Player struct {
-	Name string `json:"name,omitempty"`
-	Role string `json:"role,omitempty"`
-}*/
-
 // Log represents a log message in a game
 type Log struct {
 	Text      string    `json:"text,omitempty"`
