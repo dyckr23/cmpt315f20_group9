@@ -15,7 +15,16 @@ func ProcessRules(move structs.Word, game structs.Room) structs.Room {
 	}
 	if move.Revealed == "true" {
 		//log.Fatalf("Fatal error: room %s sent flipped card", game.RoomCode)
-		log.Printf("ERROR: room %s sent flipped card", game.RoomCode)
+		log.Printf("Error: room %s sent flipped card", game.RoomCode)
+	}
+	// check for end turn signal
+	if move.Text == "end turn" && move.Identity == "control" {
+		if game.Turn == "blue" {
+			game.Turn = "red"
+			return game
+		}
+		game.Turn = "blue"
+		return game
 	}
 
 	for i, v := range game.Words {
