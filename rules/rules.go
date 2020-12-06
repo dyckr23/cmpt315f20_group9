@@ -11,7 +11,8 @@ import (
 // as a move, to the game state contained within the session broker
 func ProcessRules(move structs.Word, game structs.Room) structs.Room {
 	if strings.Contains(game.Status, "win!") {
-		log.Fatalf("Fatal error: referenced finished game %s", game.RoomCode)
+		//log.Fatalf("Fatal error: referenced finished game %s", game.RoomCode)
+		log.Printf("Error: referenced finished game %s", game.RoomCode)
 	}
 	if move.Revealed == "true" {
 		//log.Fatalf("Fatal error: room %s sent flipped card", game.RoomCode)
