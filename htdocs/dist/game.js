@@ -98,7 +98,7 @@ function updateState(event) {
         console.log("EVENT DATA " + event.data);
         try {
             var dataParsed = JSON.parse(event.data);
-            console.log("DATA PARSED: " + JSON.stringify(dataParsed));
+            console.log(dataParsed);
             data = dataParsed;
             updateView(data);
         }
