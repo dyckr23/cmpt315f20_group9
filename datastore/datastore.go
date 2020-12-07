@@ -43,7 +43,7 @@ func DeleteGame(roomCode string) {
 	defer conn.Close()
 
 	res, err := conn.Do("del", roomCode)
-	if err != nil || res != 1 {
+	if err != nil {
 		log.Println("Error: server delete stale game", roomCode)
 		return
 	}
