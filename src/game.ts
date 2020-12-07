@@ -8,10 +8,11 @@ function getGameState() {
 
   req.addEventListener("load", function(event) {
     data = JSON.parse(req.responseText);
-    console.log(data);
+    //console.log(data);
 
-    conn = new WebSocket("ws://" + document.location.host + `/websocket/${data.roomCode}`)
-    console.log("ws://" + document.location.host + "/websocket");
+    //wss for HTTPS, ws for HTTP
+    conn = new WebSocket("wss://" + document.location.host + `/websocket/${data.roomCode}`)
+    console.log("wss://" + document.location.host + "/websocket");
     conn.onopen = function (evt) {
       console.log("Connection established.");
     };
@@ -81,7 +82,7 @@ function updateView(data: any) {
     });
     $("#end-turn-btn").prop("disabled", true);
   }
-  console.log(callbacks);
+  //console.log(callbacks);
 }
 
 function operativeView() {
@@ -123,16 +124,17 @@ function spymasterView() {
 
 function sendMove(index: number) {
   conn.send(JSON.stringify(data.words[index]));
-  console.log("SENDING " + JSON.stringify(data.words[index]))
+  //console.log("SENDING " + JSON.stringify(data.words[index]))
 }
 
 function updateState(event: MessageEvent) {
   if (event.data != null) {
-    console.log("EVENT " + JSON.stringify(event));
-    console.log("EVENT DATA " + event.data);
+    $("#end-turn-btn").on("click", endTurn);
+    //console.log("EVENT " + JSON.stringify(event));
+    //console.log("EVENT DATA " + event.data);
     try {
       var dataParsed = JSON.parse(event.data);
-      console.log(dataParsed);
+      //console.log(dataParsed);
       data = dataParsed;
       updateView(data);
     } catch(e) {
@@ -162,6 +164,7 @@ function endTurn() {
   conn.send(JSON.stringify(data));
   console.log("SENDING " + JSON.stringify(data));
 }
+
 function startNewGame() {
   var data = {
     "text":"start new game",
@@ -169,7 +172,7 @@ function startNewGame() {
     "revealed": "",
   };
   conn.send(JSON.stringify(data));
-  console.log("SENDING " + JSON.stringify(data));
+  //console.log("SENDING " + JSON.stringify(data));
 }
 
 $(function () {

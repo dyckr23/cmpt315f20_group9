@@ -29,7 +29,7 @@ func ProcessRules(move structs.Word, game structs.Room) structs.Room {
 		return game
 	}
 	// check for start new game signal
-	if move.Text == "new game" && move.Identity == "control" {
+	if move.Text == "start new game" && move.Identity == "control" {
 		log.Println("Making new game state for", game.RoomCode)
 		name := game.RoomCode
 		game = datastore.NewGame(name)

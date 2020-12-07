@@ -7,9 +7,10 @@ function getGameState() {
     let req = new XMLHttpRequest();
     req.addEventListener("load", function (event) {
         data = JSON.parse(req.responseText);
-        console.log(data);
-        conn = new WebSocket("ws://" + document.location.host + `/websocket/${data.roomCode}`);
-        console.log("ws://" + document.location.host + "/websocket");
+        //console.log(data);
+        //wss for HTTPS, ws for HTTP
+        conn = new WebSocket("wss://" + document.location.host + `/websocket/${data.roomCode}`);
+        console.log("wss://" + document.location.host + "/websocket");
         conn.onopen = function (evt) {
             console.log("Connection established.");
         };
@@ -71,7 +72,7 @@ function updateView(data) {
         });
         $("#end-turn-btn").prop("disabled", true);
     }
-    console.log(callbacks);
+    //console.log(callbacks);
 }
 function operativeView() {
     let operativeToggle = $("#operative")[0];
@@ -113,15 +114,16 @@ function spymasterView() {
 }
 function sendMove(index) {
     conn.send(JSON.stringify(data.words[index]));
-    console.log("SENDING " + JSON.stringify(data.words[index]));
+    //console.log("SENDING " + JSON.stringify(data.words[index]))
 }
 function updateState(event) {
     if (event.data != null) {
-        console.log("EVENT " + JSON.stringify(event));
-        console.log("EVENT DATA " + event.data);
+        $("#end-turn-btn").on("click", endTurn);
+        //console.log("EVENT " + JSON.stringify(event));
+        //console.log("EVENT DATA " + event.data);
         try {
             var dataParsed = JSON.parse(event.data);
-            console.log(dataParsed);
+            //console.log(dataParsed);
             data = dataParsed;
             updateView(data);
         }
@@ -156,7 +158,7 @@ function startNewGame() {
         "revealed": "",
     };
     conn.send(JSON.stringify(data));
-    console.log("SENDING " + JSON.stringify(data));
+    //console.log("SENDING " + JSON.stringify(data));
 }
 $(function () {
     $('[data-toggle="popover"]').popover();
