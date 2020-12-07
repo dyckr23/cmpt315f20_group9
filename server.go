@@ -222,7 +222,11 @@ func serveGame(next http.Handler) http.Handler {
 		rh := rejson.NewReJSONHandler()
 		rh.SetRedigoClient(conn)
 
-		roomCode := r.RequestURI
+		roomCode, err := url.PathUnescape(r.RequestURI)
+		if err != nil {
+			writeJSONResponse(w, err.Error(), 500)
+			return
+		}
 		roomCode = strings.Trim(roomCode, "/")
 
 		exists, err := redis.Bool(conn.Do("exists", roomCode))
