@@ -1,5 +1,6 @@
 # cmpt315f20_group9
 CMPT315 Fall 2020 - Group 9 - Project Codenames
+
 Ben Ha, Ron Dyck
 
 Codenames game implemented with a Go backend, and Typescript frontend. We chose
@@ -19,10 +20,15 @@ library functionality. doT is used for frontend templating.
 Module list:
 
 github.com/gomodule/redigo          redis client for Go
+
 github.com/nitishm/go-rejson        Go-ReJSON support for Go redis clients
+
 github.com/RedisJSON/RedisJSON      redis module, native JSON 
+
 github.com/gorilla/mux              Gorilla router
+
 github.com/gorilla/websocket        Gorilla websockets
+
 
 Additional notes, server config:
 
