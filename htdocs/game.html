@@ -31,7 +31,7 @@
                 {{?it.status=="ongoing"}}
                     <div class="col-sm-2 px-0 text-center bold {{=it.turn}}">{{=it.turn}}'s turn</div>
                 {{??}}
-                    <div class="col-sm-2 px-0 text-center bold {{=it.status}}">{{=it.status}} wins!</div>
+                    <div class="col-sm-2 px-0 text-center bold {{=it.status}} uppercase">{{=it.status}} wins!</div>
                 {{?}}
                 <div class="col-sm-2 px-0 text-right">
                     <button type="button" class="my-btn btn btn-outline-dark" id="end-turn-btn">End turn</button>

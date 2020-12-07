@@ -90,6 +90,16 @@ a:hover {
 .bold {
     font-weight: 600;
 }
+.uppercase {
+    text-transform: uppercase;
+}
+
+.disabled {
+    cursor: default !important;
+}
+.disabled:hover {
+    font-size: 100% !important;
+}
 
 .my-form-row > input {
     width: 100%;
@@ -111,6 +121,13 @@ a:hover {
 }
 .my-btn:hover {
     background-color: var(--black);
+}
+
+.my-btn:disabled {
+    background-color: var(--black);
+    opacity: 0.5;
+    color: white;
+    pointer-events: none;
 }
 
 .btn:focus, a:focus, .btn:active:focus, a:active:focus, .active, .focus {

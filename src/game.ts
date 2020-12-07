@@ -1,5 +1,6 @@
 var data: any;
 var tiles: HTMLElement[];
+var callbacks: any[];
 var conn: WebSocket;
 
 function getGameState() {
@@ -27,7 +28,7 @@ function getGameState() {
   req.send();
 }
 
-function updateView(data: any[]) {
+function updateView(data: any) {
   // Get the templates from the DOM
   let roomCodeTemplate = $("#room-code-template").html();
   let headerTemplate = $("#game-state-header-template").html();
@@ -47,16 +48,34 @@ function updateView(data: any[]) {
   $("#room-code").html(roomCodeRendered);
   $("#game-state-header").html(headerRendered);
   $("#game-state-board").html(boardRendered);
-
+  
   // update tiles variable
   tiles = $(".word-tile").toArray();
-  tiles.forEach((tile, index) => {
-    if (!tile.classList.contains("unrevealed")) {
-      tile.removeEventListener("click", () => sendMove(index));
-    } else {
-      tile.addEventListener("click", () => sendMove(index));
-    }
-  });
+  
+  // Check game status
+  // If ongoing, everything is normal and clickable
+  if (!callbacks) {
+    callbacks = Array(25).fill(null);
+  }
+  if (data.status == "ongoing") {
+    tiles.forEach((tile, index) => {
+      callbacks[index] = (callbacks[index] != null) ? callbacks[index] : () => sendMove(index);
+      if (!tile.classList.contains("unrevealed")) {
+        tile.removeEventListener("click", callbacks[index]);
+      } else {
+        tile.addEventListener("click", callbacks[index]);
+      }
+    });
+  }
+  // If not, disable tile clicking and "end turn" button
+  else {
+    tiles.forEach((tile, index) => {
+      tile.removeEventListener("click", callbacks[index]);
+      tile.classList.add("disabled");
+    });
+    $("#end-turn-btn").prop("disabled", true);
+  }
+  console.log(callbacks);
 }
 
 function operativeView() {
@@ -69,9 +88,9 @@ function operativeView() {
     spymasterToggle.checked = false;
     tiles.forEach((tile, index) => {
       if (tile.classList.contains(`${data.words[index].identity}-unrevealed`)) {
+        tile.addEventListener("click", callbacks[index]);
         tile.classList.add("unrevealed");
         tile.classList.remove(`${data.words[index].identity}-unrevealed`);
-        tile.addEventListener("click", () => sendMove(index));
       }
     });
     $("#end-turn-btn").show();
@@ -87,9 +106,9 @@ function spymasterView() {
     operativeToggle.checked = false;
     tiles.forEach((tile, index) => {
       if (tile.classList.contains("unrevealed")) {
+        tile.removeEventListener("click", callbacks[index]);
         tile.classList.add(`${data.words[index].identity}-unrevealed`);
         tile.classList.remove("unrevealed");
-        tile.removeEventListener("click", () => sendMove(index));
       }
     });
     $("#end-turn-btn").hide();
