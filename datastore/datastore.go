@@ -37,6 +37,19 @@ func UpdateGame(game structs.Room) {
 	}
 }
 
+// DeleteGame is used by brokers to remove finished games with 0 active players
+func DeleteGame(roomCode string) {
+	conn := pool.Get()
+	defer conn.Close()
+
+	res, err := conn.Do("del", roomCode)
+	if err != nil || res != 1 {
+		log.Println("Error: server delete stale game", roomCode)
+		return
+	}
+	log.Printf("DeleteGame: %s, result: %d\n", roomCode, res)
+}
+
 // NewGame creates a new game state when Start New game button is clicked
 func NewGame(roomCode string) structs.Room {
 	var teams []string = []string{"red", "blue"}

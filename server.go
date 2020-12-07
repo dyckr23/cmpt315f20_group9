@@ -33,6 +33,9 @@ func middlewareLogWrapper(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		source, _, _ := net.SplitHostPort(r.RemoteAddr)
 		log.Println("request URI", r.RequestURI, "with method", r.Method, "from ip address", source)
+		// Set to prevent new games being created without visiting front page
+		w.Header().Set("Cache-Control", "no-store")
+
 		next.ServeHTTP(w, r)
 	})
 }
@@ -180,8 +183,13 @@ func serveWs(w http.ResponseWriter, r *http.Request) {
 	if !exists {
 		err = errors.New("websocket error: cannot find room")
 		writeJSONResponse(w, err.Error(), http.StatusNotFound)
+
+		log.Println("serveWs: cannot find room:", roomCode)
+
 		return
 	}
+
+	log.Println("serveWs: found room:", roomCode)
 
 	rh := rejson.NewReJSONHandler()
 	rh.SetRedigoClient(rConn)

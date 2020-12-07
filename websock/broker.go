@@ -46,6 +46,9 @@ func (broker *Broker) Run() {
 		case client := <-broker.Unregister:
 			delete(broker.Clients, client)
 			log.Printf("Broker room %s: disconnect, size %d ", broker.Name, len(broker.Clients))
+			if len(broker.Clients) == 0 && broker.Room.Status != "ongoing" {
+				datastore.DeleteGame(broker.Room.RoomCode)
+			}
 
 			for client := range broker.Clients {
 				client.Conn.WriteMessage(1, []byte("Disconnected"))
