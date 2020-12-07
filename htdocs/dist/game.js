@@ -9,8 +9,8 @@ function getGameState() {
         data = JSON.parse(req.responseText);
         //console.log(data);
         //wss for HTTPS, ws for HTTP
-        conn = new WebSocket("ws://" + document.location.host + `/websocket/${data.roomCode}`);
-        console.log("ws://" + document.location.host + "/websocket");
+        conn = new WebSocket("wss://" + document.location.host + `/websocket/${data.roomCode}`);
+        console.log("wss://" + document.location.host + "/websocket");
         conn.onopen = function (evt) {
             console.log("Connection established.");
         };
