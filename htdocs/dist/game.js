@@ -88,6 +88,7 @@ function operativeView() {
                 tile.addEventListener("click", callbacks[index]);
                 tile.classList.add("unrevealed");
                 tile.classList.remove(`${data.words[index].identity}-unrevealed`);
+                tile.classList.remove("disabled");
             }
         });
         $("#end-turn-btn").show();
@@ -107,6 +108,7 @@ function spymasterView() {
                 tile.removeEventListener("click", callbacks[index]);
                 tile.classList.add(`${data.words[index].identity}-unrevealed`);
                 tile.classList.remove("unrevealed");
+                tile.classList.add("disabled");
             }
         });
         $("#end-turn-btn").hide();
