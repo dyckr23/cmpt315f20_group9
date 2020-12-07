@@ -4,6 +4,7 @@ import (
 	"log"
 	"strings"
 
+	"codenames/datastore"
 	"codenames/structs"
 )
 
@@ -27,7 +28,14 @@ func ProcessRules(move structs.Word, game structs.Room) structs.Room {
 		game.Turn = "blue"
 		return game
 	}
-
+	// check for start new game signal
+	if move.Text == "new game" && move.Identity == "control" {
+		log.Println("Making new game state for", game.RoomCode)
+		name := game.RoomCode
+		game = datastore.NewGame(name)
+		return game
+	}
+	// mark the word as revealed
 	for i, v := range game.Words {
 		if v.Text == move.Text {
 			v.Revealed = "true"
@@ -35,14 +43,14 @@ func ProcessRules(move structs.Word, game structs.Room) structs.Room {
 			break
 		}
 	}
-
+	// process rules
 	switch move.Identity {
 	case "assassin":
 		if game.Turn == "blue" {
-			game.Status = "red win!"
+			game.Status = "red"
 			return game
 		}
-		game.Status = "blue win!"
+		game.Status = "blue"
 		return game
 	case "spectator":
 		if game.Turn == "blue" {
@@ -54,7 +62,7 @@ func ProcessRules(move structs.Word, game structs.Room) structs.Room {
 	case "blue":
 		game.BlueHidden--
 		if game.BlueHidden == 0 {
-			game.Status = "blue win!"
+			game.Status = "blue"
 			return game
 		} else if game.Turn == "blue" {
 			return game
@@ -65,7 +73,7 @@ func ProcessRules(move structs.Word, game structs.Room) structs.Room {
 	case "red":
 		game.RedHidden--
 		if game.RedHidden == 0 {
-			game.Status = "red win!"
+			game.Status = "red"
 			return game
 		} else if game.Turn == "red" {
 			return game

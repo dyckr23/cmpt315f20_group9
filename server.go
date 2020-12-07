@@ -233,7 +233,6 @@ func serveWs(w http.ResponseWriter, r *http.Request) {
 
 func serveGame(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-
 		log.Println("serveGame examining request URI:", r.RequestURI)
 
 		conn := pool.Get()
@@ -250,13 +249,11 @@ func serveGame(next http.Handler) http.Handler {
 			return
 		}
 
-		log.Printf("serveGame: Room %s exists: %v\n", roomCode, exists)
-
 		if exists {
 			redir := new(url.URL)
 			redir.Path = "/game.html"
 			r.URL = redir
-			log.Printf("serveGame: rewrote %+v\n", r.URL)
+			log.Printf("serveGame: %s exists, rewriting to game...\n", roomCode)
 		}
 
 		next.ServeHTTP(w, r)
