@@ -37,7 +37,7 @@ func (broker *Broker) Run() {
 		select {
 		case client := <-broker.Register:
 			broker.Clients[client] = true
-			log.Printf("Broker %s: connect, size %d ", broker.Name, len(broker.Clients))
+			log.Printf("Broker room %s: connect, size %d ", broker.Name, len(broker.Clients))
 
 			for client := range broker.Clients {
 				client.Conn.WriteMessage(1, []byte("Connected"))
@@ -45,14 +45,14 @@ func (broker *Broker) Run() {
 			break
 		case client := <-broker.Unregister:
 			delete(broker.Clients, client)
-			log.Printf("Broker %s: disconnect, size %d ", broker.Name, len(broker.Clients))
+			log.Printf("Broker room %s: disconnect, size %d ", broker.Name, len(broker.Clients))
 
 			for client := range broker.Clients {
 				client.Conn.WriteMessage(1, []byte("Disconnected"))
 			}
 			break
 		case move := <-broker.Broadcast:
-			log.Printf("Broker: Move received: %+v\n", move)
+			log.Printf("Broker room %s, Move received: %+v\n", broker.Name, move)
 			// Process move according to game rules and update state
 			broker.Room = rules.ProcessRules(move, broker.Room)
 			// Save game state after the move is processed

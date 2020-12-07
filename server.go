@@ -25,9 +25,6 @@ var pool *redis.Pool
 
 var games map[string]*websock.Broker
 
-//!!!
-//var devFlag bool
-
 var teams []string = []string{"red", "blue"}
 var identities []string
 var size int = 25
@@ -189,19 +186,6 @@ func serveWs(w http.ResponseWriter, r *http.Request) {
 	rh := rejson.NewReJSONHandler()
 	rh.SetRedigoClient(rConn)
 
-	//!!!
-	/*if !devFlag {
-		devFlag = true
-		testJSON, _ := redis.Bytes(rh.JSONGet("test-room-rd", "."))
-		var testState structs.Room
-		err = json.Unmarshal(testJSON, &testState)
-		log.Printf("TEST state loaded: %+v\n", testState)
-		broker = websock.Newbroker("test-room-rd", testState)
-		games["test-room-rd"] = broker
-		go broker.Run()
-	}*/
-	//!!!
-
 	if _, ok := games[roomCode]; ok {
 		log.Println("serveWs: found broker for ", roomCode)
 		broker = games[roomCode]
@@ -215,7 +199,7 @@ func serveWs(w http.ResponseWriter, r *http.Request) {
 		roomState := structs.Room{}
 		err = json.Unmarshal(roomJSON, &roomState)
 
-		log.Printf("serveWS: state loaded: %+v\n", roomState)
+		log.Println("serveWS: state loaded for room:", roomCode)
 
 		broker = websock.Newbroker(roomCode, roomState)
 		games[roomCode] = broker
@@ -233,9 +217,6 @@ func serveWs(w http.ResponseWriter, r *http.Request) {
 
 func serveGame(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-
-		log.Println("serveGame examining request URI:", r.RequestURI)
-
 		conn := pool.Get()
 		defer conn.Close()
 		rh := rejson.NewReJSONHandler()
@@ -250,13 +231,11 @@ func serveGame(next http.Handler) http.Handler {
 			return
 		}
 
-		log.Printf("serveGame: Room %s exists: %v\n", roomCode, exists)
-
 		if exists {
 			redir := new(url.URL)
 			redir.Path = "/game.html"
 			r.URL = redir
-			log.Printf("serveGame: rewrote %+v\n", r.URL)
+			log.Printf("serveGame: room %s exists, rewriting to game...\n", roomCode)
 		}
 
 		next.ServeHTTP(w, r)
@@ -294,7 +273,7 @@ func main() {
 	router.PathPrefix("/").Handler(http.FileServer(http.Dir("htdocs")))
 
 	webserver := &http.Server{
-		Addr:    ":8080",
+		Addr:    ":8000",
 		Handler: router,
 	}
 

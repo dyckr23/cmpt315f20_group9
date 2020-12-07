@@ -35,6 +35,6 @@ func (c *Client) Read() {
 		err = decoder.Decode(&move)
 
 		c.Broker.Broadcast <- move
-		log.Printf("Client: Move received: %+v\n", move)
+		//log.Printf("Client: Move received: %+v\n", move)
 	}
 }
