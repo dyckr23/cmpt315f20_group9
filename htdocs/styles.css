@@ -95,7 +95,7 @@ a:hover {
 }
 
 .disabled {
-    cursor: default !important;
+    cursor: not-allowed !important;
 }
 .disabled:hover {
     font-size: 100% !important;
