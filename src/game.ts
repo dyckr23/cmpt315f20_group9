@@ -29,6 +29,12 @@ function getGameState() {
 }
 
 function updateView(data: any) {
+  // Provide data with current view mode: spymaster or operative
+  var operativeToggle = $("#operative")[0] as HTMLInputElement;
+  console.log(operativeToggle.checked);
+  data["view"] = (operativeToggle.checked) ? "operative" : "spymaster";
+  console.log(data["view"]);
+
   // Get the templates from the DOM
   let roomCodeTemplate = $("#room-code-template").html();
   let headerTemplate = $("#game-state-header-template").html();
@@ -147,6 +153,25 @@ function copyRoomLinkToClipboard() {
   })
 }
 
+function endTurn() {
+  var data = {
+    "text":"end turn",
+    "identity":"control",
+    "revealed": "",
+  };
+  conn.send(JSON.stringify(data));
+  console.log("SENDING " + JSON.stringify(data));
+}
+function startNewGame() {
+  var data = {
+    "text":"start new game",
+    "identity":"control",
+    "revealed": "",
+  };
+  conn.send(JSON.stringify(data));
+  console.log("SENDING " + JSON.stringify(data));
+}
+
 $(function () {
   (<any>$('[data-toggle="popover"]')).popover()
 })
@@ -154,5 +179,7 @@ $(function () {
 $("#operative").parent().on("click", operativeView);
 $("#spymaster").parent().on("click", spymasterView);
 $("#copy-btn").on("click", copyRoomLinkToClipboard);
+$("#end-turn-btn").on("click", endTurn);
+$("#start-new-game-btn").on("click", startNewGame);
 
 getGameState();

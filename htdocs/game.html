@@ -34,7 +34,7 @@
                     <div class="col-sm-2 px-0 text-center bold {{=it.status}} uppercase">{{=it.status}} wins!</div>
                 {{?}}
                 <div class="col-sm-2 px-0 text-right">
-                    <button type="button" class="my-btn btn btn-outline-dark" id="end-turn-btn">End turn</button>
+                    <button type="button" class="my-btn btn btn-outline-dark" id="end-turn-btn" {{?it.view=="spymaster"}}style="display: none;"{{?}}>End turn</button>
                 </div>
             </div>
         </div>
@@ -49,7 +49,11 @@
                     {{~it.words :value:index}}
                     {{?index%size==0}} <tr> {{?}}
                     {{?value.revealed=="false"}}
+                    {{?it.view=="operative"}}
                         <td class="word-tile unrevealed">{{=value.text}}</td>
+                    {{??}}
+                        <td class="word-tile {{=value.identity}}-unrevealed">{{=value.text}}</td>
+                    {{?}}
                     {{??}}
                         <td class="word-tile {{=value.identity}}-revealed">{{=value.text}}</td>
                     {{?}}

@@ -68,7 +68,7 @@ a:hover {
 .assassin-unrevealed {
     border: 5px solid var(--assassin);
     background-color: transparent;
-    color: var(--red);
+    color: var(--assassin);
 }
 .red-revealed {
     background-color: var(--red);
@@ -125,7 +125,7 @@ a:hover {
 
 .my-btn:disabled {
     background-color: var(--black);
-    opacity: 0.5;
+    opacity: 0.2;
     color: white;
     pointer-events: none;
 }
