@@ -46,6 +46,7 @@ function updateView(data) {
     $("#room-code").html(roomCodeRendered);
     $("#game-state-header").html(headerRendered);
     $("#game-state-board").html(boardRendered);
+    $("#end-turn-btn").on("click", endTurn);
     // update tiles variable
     tiles = $(".word-tile").toArray();
     // Check game status
@@ -166,6 +167,6 @@ $(function () {
 $("#operative").parent().on("click", operativeView);
 $("#spymaster").parent().on("click", spymasterView);
 $("#copy-btn").on("click", copyRoomLinkToClipboard);
-$("#end-turn-btn").on("click", endTurn);
+//$("#end-turn-btn").on("click", endTurn);
 $("#start-new-game-btn").on("click", startNewGame);
 getGameState();
