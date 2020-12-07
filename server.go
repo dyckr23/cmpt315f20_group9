@@ -80,7 +80,7 @@ func getRoom(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// If room does not exist
-	fmt.Printf("Creating new room: %s\n", roomCode)
+	log.Printf("getRoom: creating new room: %s\n", roomCode)
 
 	// Fetch 25 random words from wordlist
 	values, err := redis.Strings(conn.Do("SRANDMEMBER", "wordlist", size))
